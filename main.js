@@ -1,14 +1,10 @@
-Vue.component("todo-list", {
-    props: {
-        todos: {
-            type: Array,
-            required: true
-        }
-    },
+const app = Vue.createApp({})
 
+app.component("todo-list", {
     data: function() {
         return {
-            new_todo: null,            
+            new_todo: "",
+            todos: [],            
             error: null
         }
     },
@@ -16,7 +12,7 @@ Vue.component("todo-list", {
     methods: {
         submitTodo() {
             if (this.new_todo) {
-                this.$emit('submit-todo', this.new_todo);
+                this.todos.push(this.new_todo);
                 this.new_todo = null;
 
                 if (this.error) {
@@ -26,6 +22,10 @@ Vue.component("todo-list", {
             } else {
                 this.error = "Assicurati di compilare tutti i campi del form!";
             }
+        },
+        deleteTodo(element) {
+            let index = this.todos.indexOf(element);
+            this.todos.splice(index, 1);
         }
     },
 
@@ -36,52 +36,45 @@ Vue.component("todo-list", {
 
                 <form @submit.prevent="submitTodo">                   
                     <div class="form-group">
-                        <label for="todoText">Aggiungi un todo</label>
+                        <label for="todoText">Task rimanenti {{ todos.length }}</label>
                         <input
+                            placeholder="Aggiungi un todo"
                             class="form-control"
                             id="todoText"
                             type="text"
                             v-model="new_todo">
-                        </textarea>
+                        </input>
                     </div>                   
                 </form>
                 <todo
                     v-for="(todo, index) in todos"
                     :todo="todo"
                     :key="index"
+                    @delete-todo="deleteTodo"
                 ></todo>                
             </div>
         </div>
     `
 })
 
-Vue.component("todo", {
+app.component("todo", {
     props: {
         todo: {
             type: String,
             required: true
         }
     },
-    template: `
-        <div class="comment mb-2">
-            <div class="card">                
-                <div class="card-body">
-                    <p>{{ todo }}</p>
-                </div>
-            </div>
-        </div>
+    template: `               
+        <div class="alert alert-success">
+            {{ todo }}
+            <button
+              type="button"
+              class="close"
+              @click="this.$emit('delete-todo', this.todo)">
+              <span>&times;</span>
+            </button>
+          </div>
     `
 })
 
-let app = new Vue({
-    el: "#app",
-    data: {
-        todos: []
-    },
-    methods: {
-        addTodo(new_todo) {
-            console.log('inside addTodo', new_todo)
-            this.todos.push(new_todo)
-        }
-    }
-})
+app.mount('#app')
